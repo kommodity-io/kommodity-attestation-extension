@@ -12,18 +12,18 @@ const (
 	osReleaseFileName = "os-release"
 )
 
-var (
-	osReleaseFilePaths = []string{
-		"/etc/",
-		"/usr/lib/",
-	}
-)
-
+// GetTalosVersion retrieves the Talos version from the os-release file.
 func GetTalosVersion() (string, error) {
 	var version string
 
+	osReleaseFilePaths := []string{
+		"/etc/",
+		"/usr/lib/",
+	}
+
 	for _, path := range osReleaseFilePaths {
 		releaseFile := path + osReleaseFileName
+
 		_, err := os.Stat(releaseFile)
 		if err == nil {
 			version, err = getVersionID(releaseFile)
@@ -45,5 +45,6 @@ func getVersionID(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read os-release file: %w", err)
 	}
+
 	return envMap["VERSION_ID"], nil
 }
