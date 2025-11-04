@@ -12,6 +12,7 @@ const (
 	secureBootVarPath = efiVarsDir + "/SecureBoot-" + efiGlobalVarGUID
 )
 
+// IsSecureBootEnabled checks if Secure Boot is enabled on the machine.
 func IsSecureBootEnabled() (bool, error) {
 	data, err := os.ReadFile(secureBootVarPath)
 	if err != nil {

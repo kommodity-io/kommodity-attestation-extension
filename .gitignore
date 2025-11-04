@@ -24,9 +24,13 @@ profile.cov
 go.work
 go.work.sum
 
-# env file
+# Ignore built binaries.
+bin/
+
+# Ignore the environment configuration files.
 .env
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# Ignore vs code debug files.
+.vscode/
+__debug*
+.cursor/
