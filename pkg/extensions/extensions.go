@@ -37,6 +37,13 @@ const (
 
 // GetExtensions retrieves the list of Talos extensions from the system.
 func GetExtensions() ([]Extension, error) {
+	_, err := os.Stat(extensionsDir)
+	if os.IsNotExist(err) {
+		return []Extension{}, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("failed to stat extensions directory: %w", err)
+	}
+
 	files, err := os.ReadDir(extensionsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read extensions directory: %w", err)
