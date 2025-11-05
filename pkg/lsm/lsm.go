@@ -1,5 +1,5 @@
-// Package lms provides utilities to detect the LMS (Linux Security Module).
-package lms
+// Package lsm provides utilities to detect the LSM (Linux Security Module).
+package lsm
 
 import (
 	"fmt"
@@ -12,8 +12,8 @@ const (
 	appArmorEnabledPath = "/sys/module/apparmor/parameters/enabled"
 )
 
-// IsLMSEnabled checks if any Linux Security Module (SELinux or AppArmor) is enabled on the machine.
-func IsLMSEnabled() (bool, error) {
+// IsLSMEnabled checks if any Linux Security Module (SELinux or AppArmor) is enabled on the machine.
+func IsLSMEnabled() (bool, error) {
 	selinuxEnabled, err := isSELinuxEnabled()
 	if err != nil {
 		return false, fmt.Errorf("failed to check SELinux status: %w", err)
