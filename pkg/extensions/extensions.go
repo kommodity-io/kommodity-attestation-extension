@@ -2,12 +2,12 @@
 package extensions
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/kommodity-io/kommodity-attestation-extension/pkg/utils"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -34,6 +34,64 @@ type ExtensionConfig struct {
 const (
 	extensionsDir = "/usr/local/etc/containers"
 )
+
+// Attestable implements the report.Attestable interface for Talos extensions.
+type Attestable struct {
+	extensions []Extension
+	timestamp  string
+}
+
+// Name returns the name of the attestable component.
+func (a *Attestable) Name() string {
+	return "extensions"
+}
+
+// Measure returns the measurement of the Talos extensions.
+func (a *Attestable) Measure() (string, error) {
+	extensions, err := GetExtensions()
+	if err != nil {
+		return "", fmt.Errorf("failed to get extensions: %w", err)
+	}
+
+	data, err := yaml.Marshal(extensions)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal extensions: %w", err)
+	}
+
+	a.timestamp = utils.UnixNowString()
+	a.extensions = extensions
+
+	return utils.EncodeMeasurement(data), nil
+}
+
+// GetPCRs returns the PCR indices relevant to Talos extensions.
+func (a *Attestable) GetPCRs() (map[int]string, error) {
+	return map[int]string{}, nil
+}
+
+// Quote returns a dummy quote for Talos extensions (WARNING: mock implementation).
+func (a *Attestable) Quote(nonce []byte) ([]byte, error) {
+	return nonce, nil
+}
+
+// Evidence returns metadata about the Talos extensions.
+func (a *Attestable) Evidence() (map[string]string, error) {
+	evidence := map[string]string{
+		"extensions_count": strconv.Itoa(len(a.extensions)),
+		"timestamp":        a.timestamp,
+	}
+
+	for i, ext := range a.extensions {
+		prefix := fmt.Sprintf("extension_%d_", i)
+		evidence[prefix+"name"] = ext.Name
+		evidence[prefix+"config_name"] = ext.Config.Name
+		evidence[prefix+"config_hash"] = ext.Config.Hash
+		evidence[prefix+"binary_name"] = ext.Binary.Name
+		evidence[prefix+"binary_hash"] = ext.Binary.Hash
+	}
+
+	return evidence, nil
+}
 
 // GetExtensions retrieves the list of Talos extensions from the system.
 func GetExtensions() ([]Extension, error) {
@@ -92,17 +150,11 @@ func parseExtension(file os.DirEntry) (*Extension, error) {
 		Name: strings.TrimSuffix(file.Name(), ".yaml"),
 		Config: File{
 			Name: file.Name(),
-			Hash: fileHash(data),
+			Hash: utils.EncodeMeasurement(data),
 		},
 		Binary: File{
 			Name: extConfig.Container.Entrypoint,
-			Hash: fileHash(extensionBinaryData),
+			Hash: utils.EncodeMeasurement(extensionBinaryData),
 		},
 	}, nil
-}
-
-func fileHash(data []byte) string {
-	sum := sha256.Sum256(data)
-
-	return hex.EncodeToString(sum[:])
 }

@@ -6,14 +6,56 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/kommodity-io/kommodity-attestation-extension/pkg/utils"
 )
 
 const (
 	osReleaseFileName = "os-release"
 )
 
-// GetTalosVersion retrieves the Talos version from the os-release file.
-func GetTalosVersion() (string, error) {
+// Attestable implements the report.Attestable interface for Talos version.
+type Attestable struct {
+	version   string
+	timestamp string
+}
+
+// Name returns the name of the attestable component.
+func (a *Attestable) Name() string {
+	return "talos-version"
+}
+
+// Measure returns the measurement of the Talos version.
+func (a *Attestable) Measure() (string, error) {
+	version, err := getTalosVersion()
+	if err != nil {
+		return "", fmt.Errorf("failed to get Talos version: %w", err)
+	}
+
+	a.timestamp = utils.UnixNowString()
+	a.version = version
+
+	return utils.EncodeMeasurement([]byte(version)), nil
+}
+
+// GetPCRs returns the PCR indices relevant to Talos version.
+func (a *Attestable) GetPCRs() (map[int]string, error) {
+	return map[int]string{}, nil
+}
+
+// Quote returns a dummy quote for Talos version (WARNING: mock implementation).
+func (a *Attestable) Quote(nonce []byte) ([]byte, error) {
+	return nonce, nil
+}
+
+// Evidence returns metadata about the Talos version.
+func (a *Attestable) Evidence() (map[string]string, error) {
+	return map[string]string{
+		a.Name():    a.version,
+		"timestamp": a.timestamp,
+	}, nil
+}
+
+func getTalosVersion() (string, error) {
 	var version string
 
 	osReleaseFilePaths := []string{
