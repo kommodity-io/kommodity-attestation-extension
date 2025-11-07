@@ -202,7 +202,7 @@ func NewPostReportUnauthorized() *PostReportUnauthorized {
 /*
 PostReportUnauthorized describes a response with status code 401, with default header values.
 
-If the nounce is invalid
+If the nonce is invalid
 */
 type PostReportUnauthorized struct {
 	Payload string

@@ -56,7 +56,7 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetNounce(params *GetNounceParams, opts ...ClientOption) (*GetNounceOK, error)
+	GetNonce(params *GetNonceParams, opts ...ClientOption) (*GetNonceOK, error)
 
 	GetReportIPTrust(params *GetReportIPTrustParams, opts ...ClientOption) (*GetReportIPTrustOK, error)
 
@@ -66,22 +66,22 @@ type ClientService interface {
 }
 
 /*
-GetNounce obtains an attestation nounce
+GetNonce obtains an attestation nonce
 */
-func (a *Client) GetNounce(params *GetNounceParams, opts ...ClientOption) (*GetNounceOK, error) {
+func (a *Client) GetNonce(params *GetNonceParams, opts ...ClientOption) (*GetNonceOK, error) {
 	// NOTE: parameters are not validated before sending
 	if params == nil {
-		params = NewGetNounceParams()
+		params = NewGetNonceParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetNounce",
+		ID:                 "GetNonce",
 		Method:             "GET",
-		PathPattern:        "/nounce",
+		PathPattern:        "/nonce",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetNounceReader{formats: a.formats},
+		Reader:             &GetNonceReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -94,7 +94,7 @@ func (a *Client) GetNounce(params *GetNounceParams, opts ...ClientOption) (*GetN
 	}
 
 	// only one success response has to be checked
-	success, ok := result.(*GetNounceOK)
+	success, ok := result.(*GetNonceOK)
 	if ok {
 		return success, nil
 	}
@@ -104,7 +104,7 @@ func (a *Client) GetNounce(params *GetNounceParams, opts ...ClientOption) (*GetN
 	// no default response is defined.
 	//
 	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetNounce: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetNonce: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
