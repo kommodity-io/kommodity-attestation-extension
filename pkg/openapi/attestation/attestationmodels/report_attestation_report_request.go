@@ -22,9 +22,9 @@ type ReportAttestationReportRequest struct {
 	// node
 	Node *ReportNodeInfo `json:"node,omitempty"`
 
-	// nounce
+	// nonce
 	// Example: 884f2638c74645b859f87e76560748cc
-	Nounce string `json:"nounce,omitempty"`
+	Nonce string `json:"nonce,omitempty"`
 
 	// report
 	Report *ReportReport `json:"report,omitempty"`
