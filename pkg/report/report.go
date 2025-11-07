@@ -4,6 +4,7 @@ package report
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
 
 	"github.com/kommodity-io/kommodity-attestation-extension/pkg/apparmor"
 	"github.com/kommodity-io/kommodity-attestation-extension/pkg/extensions"
@@ -86,10 +87,15 @@ func (r *AttestableReport) Generate(nonce []byte) (*attestationmodels.ReportRepo
 			return nil, fmt.Errorf("failed to get PCRs for %s: %w", attestable.Name(), err)
 		}
 
+		convPCRs := make(map[string]string)
+		for k, v := range pcrs {
+			convPCRs[strconv.Itoa(k)] = v
+		}
+
 		components = append(components, &attestationmodels.ReportComponentReport{
 			Evidence:    evidence,
 			Measurement: measure,
-			Pcrs:        pcrs,
+			Pcrs:        convPCRs,
 			Name:        attestable.Name(),
 			Quote:       hex.EncodeToString(quote),
 			Signature:   hex.EncodeToString(quote),

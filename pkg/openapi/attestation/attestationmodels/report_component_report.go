@@ -27,7 +27,7 @@ type ReportComponentReport struct {
 	Name string `json:"name,omitempty"`
 
 	// pcrs
-	Pcrs map[int]string `json:"pcrs,omitempty"`
+	Pcrs map[string]string `json:"pcrs,omitempty"`
 
 	// Hex encoded TPM quote (includes nonce)
 	Quote string `json:"quote,omitempty"`
