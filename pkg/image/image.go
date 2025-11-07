@@ -4,7 +4,9 @@ package image
 import (
 	"fmt"
 	"os"
+	"strconv"
 
+	"github.com/kommodity-io/kommodity-attestation-extension/pkg/utils"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -29,6 +31,60 @@ type Metadata struct {
 const (
 	layersPath = "/etc/extensions.yaml"
 )
+
+// Attestable implements the report.Attestable interface for image layers.
+type Attestable struct {
+	layers    []Layer
+	timestamp string
+}
+
+// Name returns the name of the attestable component.
+func (a *Attestable) Name() string {
+	return "image"
+}
+
+// Measure returns the measurement of the image layers.
+func (a *Attestable) Measure() (string, error) {
+	layers, err := GetImageLayers()
+	if err != nil {
+		return "", fmt.Errorf("failed to get image layers: %w", err)
+	}
+
+	data, err := yaml.Marshal(layers)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal image layers: %w", err)
+	}
+
+	return utils.EncodeMeasurement(data), nil
+}
+
+// GetPCRs returns the PCR indices relevant to image layers.
+func (a *Attestable) GetPCRs() (map[int]string, error) {
+	return map[int]string{}, nil
+}
+
+// Quote returns a dummy quote for image layers (WARNING: mock implementation).
+func (a *Attestable) Quote(nonce []byte) ([]byte, error) {
+	return nonce, nil
+}
+
+// Evidence returns metadata about the image layers.
+func (a *Attestable) Evidence() (map[string]string, error) {
+	evidence := map[string]string{
+		"layers_count": strconv.Itoa(len(a.layers)),
+		"timestamp":    a.timestamp,
+	}
+
+	for i, layer := range a.layers {
+		prefix := fmt.Sprintf("layer_%d_", i)
+		evidence[prefix+"name"] = layer.Metadata.Name
+		evidence[prefix+"version"] = layer.Metadata.Version
+		evidence[prefix+"author"] = layer.Metadata.Author
+		evidence[prefix+"image"] = layer.Image
+	}
+
+	return evidence, nil
+}
 
 // GetImageLayers retrieves the list of image layers from the system.
 func GetImageLayers() (*LayerList, error) {

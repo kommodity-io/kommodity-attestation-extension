@@ -27,7 +27,7 @@ type ReportAttestationReportRequest struct {
 	Nounce string `json:"nounce,omitempty"`
 
 	// report
-	Report []int64 `json:"report"`
+	Report *ReportReport `json:"report,omitempty"`
 }
 
 // Validate validates this report attestation report request
@@ -35,6 +35,10 @@ func (m *ReportAttestationReportRequest) Validate(formats strfmt.Registry) error
 	var res []error
 
 	if err := m.validateNode(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateReport(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -67,11 +71,38 @@ func (m *ReportAttestationReportRequest) validateNode(formats strfmt.Registry) e
 	return nil
 }
 
+func (m *ReportAttestationReportRequest) validateReport(formats strfmt.Registry) error {
+	if swag.IsZero(m.Report) { // not required
+		return nil
+	}
+
+	if m.Report != nil {
+		if err := m.Report.Validate(formats); err != nil {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
+				return ve.ValidateName("report")
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
+				return ce.ValidateName("report")
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ContextValidate validate this report attestation report request based on the context it is used
 func (m *ReportAttestationReportRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateNode(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateReport(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -97,6 +128,31 @@ func (m *ReportAttestationReportRequest) contextValidateNode(ctx context.Context
 			ce := new(errors.CompositeError)
 			if stderrors.As(err, &ce) {
 				return ce.ValidateName("node")
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ReportAttestationReportRequest) contextValidateReport(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Report != nil {
+
+		if swag.IsZero(m.Report) { // not required
+			return nil
+		}
+
+		if err := m.Report.ContextValidate(ctx, formats); err != nil {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
+				return ve.ValidateName("report")
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
+				return ce.ValidateName("report")
 			}
 
 			return err
