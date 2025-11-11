@@ -37,16 +37,6 @@ func (a *Attestable) Measure() (string, error) {
 	return utils.EncodeMeasurement([]byte(mode)), nil
 }
 
-// GetPCRs returns the PCR indices relevant to SELinux.
-func (a *Attestable) GetPCRs() (map[int]string, error) {
-	return map[int]string{}, nil
-}
-
-// Quote returns a dummy quote for SELinux (WARNING: mock implementation).
-func (a *Attestable) Quote(nonce []byte) ([]byte, error) {
-	return nonce, nil
-}
-
 // Evidence returns metadata about the SELinux status.
 func (a *Attestable) Evidence() (map[string]string, error) {
 	return map[string]string{

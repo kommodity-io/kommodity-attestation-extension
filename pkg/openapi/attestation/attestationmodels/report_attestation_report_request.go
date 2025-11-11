@@ -27,7 +27,7 @@ type ReportAttestationReportRequest struct {
 	Nonce string `json:"nonce,omitempty"`
 
 	// report
-	Report *ReportReport `json:"report,omitempty"`
+	Report *RestReport `json:"report,omitempty"`
 }
 
 // Validate validates this report attestation report request

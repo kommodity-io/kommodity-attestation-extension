@@ -39,16 +39,6 @@ func (a *Attestable) Measure() (string, error) {
 	return utils.EncodeMeasurement([]byte(mode)), nil
 }
 
-// GetPCRs returns the PCR indices relevant to kernel lockdown mode.
-func (a *Attestable) GetPCRs() (map[int]string, error) {
-	return map[int]string{}, nil
-}
-
-// Quote returns a dummy quote for kernel lockdown mode (not implemented).
-func (a *Attestable) Quote(nonce []byte) ([]byte, error) {
-	return nonce, nil
-}
-
 // Evidence returns metadata about the kernel lockdown mode.
 func (a *Attestable) Evidence() (map[string]string, error) {
 	return map[string]string{

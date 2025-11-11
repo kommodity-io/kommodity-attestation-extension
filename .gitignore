@@ -34,3 +34,5 @@ bin/
 .vscode/
 __debug*
 .cursor/
+
+.DS_Store

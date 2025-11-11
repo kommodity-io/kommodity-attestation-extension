@@ -14,16 +14,21 @@ import (
 	"github.com/kommodity-io/kommodity-attestation-extension/pkg/secureboot"
 	"github.com/kommodity-io/kommodity-attestation-extension/pkg/selinux"
 	"github.com/kommodity-io/kommodity-attestation-extension/pkg/squashfs"
+	"github.com/kommodity-io/kommodity-attestation-extension/pkg/tpm"
 	"github.com/kommodity-io/kommodity-attestation-extension/pkg/utils"
 	"github.com/kommodity-io/kommodity-attestation-extension/pkg/version"
+)
+
+const (
+	//nolint:lll
+	// Talos populates PCR index 7 with its measurements: https://github.com/siderolabs/talos/blob/main/pkg/machinery/constants/constants.go#L733.
+	talosPCRIndex = 7
 )
 
 // Attestable defines a single component that can produce a signed attestation.
 type Attestable interface {
 	Name() string
 	Measure() (string, error)             // hash or digest of the component
-	GetPCRs() (map[int]string, error)     // PCR indices relevant to this component
-	Quote(nonce []byte) ([]byte, error)   // TPM quote of relevant PCRs + nonce
 	Evidence() (map[string]string, error) // any supporting metadata (e.g. versions)
 }
 
@@ -63,8 +68,35 @@ func (r *AttestableReport) AddAttestable(a Attestable) *AttestableReport {
 }
 
 // Generate generates the attestation report by collecting measurements, quotes, and evidence.
-func (r *AttestableReport) Generate(nonce []byte) (*attestationmodels.ReportReport, error) {
-	components := make([]*attestationmodels.ReportComponentReport, 0)
+func (r *AttestableReport) Generate(nonce []byte) (*attestationmodels.RestReport, error) {
+	components := make([]*attestationmodels.RestComponentReport, 0)
+
+	tpmDevice, err := tpm.OpenTPMDevice(nonce)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get TPM device: %w", err)
+	}
+
+	pcrSelection := tpm.GetPCRSelection([]int{talosPCRIndex})
+
+	pcrs, err := tpmDevice.ReadPCRs(pcrSelection)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read PCRs from TPM device: %w", err)
+	}
+
+	quote, err := tpmDevice.Quote(pcrSelection)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get quote from TPM device: %w", err)
+	}
+
+	signature, err := tpmDevice.Signature()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get signature from TPM device: %w", err)
+	}
+
+	publicKey, err := tpmDevice.GetTPMPublicKey()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get TPM public key: %w", err)
+	}
 
 	for _, attestable := range r.Attestables {
 		measure, err := attestable.Measure()
@@ -72,38 +104,29 @@ func (r *AttestableReport) Generate(nonce []byte) (*attestationmodels.ReportRepo
 			return nil, fmt.Errorf("failed to measure %s: %w", attestable.Name(), err)
 		}
 
-		quote, err := attestable.Quote(nonce)
-		if err != nil {
-			return nil, fmt.Errorf("failed to quote %s: %w", attestable.Name(), err)
-		}
-
 		evidence, err := attestable.Evidence()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get evidence for %s: %w", attestable.Name(), err)
 		}
 
-		pcrs, err := attestable.GetPCRs()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get PCRs for %s: %w", attestable.Name(), err)
-		}
-
-		convPCRs := make(map[string]string)
-		for k, v := range pcrs {
-			convPCRs[strconv.Itoa(k)] = v
-		}
-
-		components = append(components, &attestationmodels.ReportComponentReport{
+		components = append(components, &attestationmodels.RestComponentReport{
 			Evidence:    evidence,
 			Measurement: measure,
-			Pcrs:        convPCRs,
 			Name:        attestable.Name(),
-			Quote:       hex.EncodeToString(quote),
-			Signature:   hex.EncodeToString(quote),
 		})
 	}
 
-	return &attestationmodels.ReportReport{
-		Components: components,
-		Timestamp:  utils.UnixNowString(),
+	convPCRs := make(map[string]string)
+	for k, v := range pcrs {
+		convPCRs[strconv.Itoa(k)] = v
+	}
+
+	return &attestationmodels.RestReport{
+		Components:   components,
+		Pcrs:         convPCRs,
+		Quote:        hex.EncodeToString(quote),
+		Signature:    hex.EncodeToString(signature),
+		Timestamp:    utils.UnixNowString(),
+		TpmPublicKey: hex.EncodeToString(publicKey),
 	}, nil
 }
