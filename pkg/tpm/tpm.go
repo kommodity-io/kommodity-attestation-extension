@@ -107,7 +107,7 @@ func (d *Device) Quote(pcrSelection *tpm2.PCRSelection) ([]byte, error) {
 		"unused", // Unused in downstream code
 		d.nonce,
 		*pcrSelection,
-		tpm2.AlgNull, // let TPM pick the default scheme for the key
+		tpm2.AlgECC,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("tpm2.Quote failed: %w", err)
