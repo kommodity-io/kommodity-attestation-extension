@@ -39,16 +39,6 @@ func (a *Attestable) Measure() (string, error) {
 	return utils.BoolToMeasurement(enabled), nil
 }
 
-// GetPCRs returns the PCR indices relevant to squashfs.
-func (a *Attestable) GetPCRs() (map[int]string, error) {
-	return map[int]string{}, nil
-}
-
-// Quote returns a dummy quote for squashfs (WARNING: mock implementation).
-func (a *Attestable) Quote(nonce []byte) ([]byte, error) {
-	return nonce, nil
-}
-
 // Evidence returns metadata about the squashfs status.
 func (a *Attestable) Evidence() (map[string]string, error) {
 	return map[string]string{

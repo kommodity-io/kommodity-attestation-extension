@@ -58,16 +58,6 @@ func (a *Attestable) Measure() (string, error) {
 	return utils.EncodeMeasurement(data), nil
 }
 
-// GetPCRs returns the PCR indices relevant to image layers.
-func (a *Attestable) GetPCRs() (map[int]string, error) {
-	return map[int]string{}, nil
-}
-
-// Quote returns a dummy quote for image layers (WARNING: mock implementation).
-func (a *Attestable) Quote(nonce []byte) ([]byte, error) {
-	return nonce, nil
-}
-
 // Evidence returns metadata about the image layers.
 func (a *Attestable) Evidence() (map[string]string, error) {
 	evidence := map[string]string{

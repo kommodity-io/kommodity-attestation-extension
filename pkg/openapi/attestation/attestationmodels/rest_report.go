@@ -15,20 +15,32 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ReportReport report report
+// RestReport rest report
 //
-// swagger:model report.Report
-type ReportReport struct {
+// swagger:model rest.Report
+type RestReport struct {
 
 	// components
-	Components []*ReportComponentReport `json:"components"`
+	Components []*RestComponentReport `json:"components"`
+
+	// pcrs
+	Pcrs map[string]string `json:"pcrs,omitempty"`
+
+	// Hex encoded TPM quote over the PCRs, with nonce
+	Quote string `json:"quote,omitempty"`
+
+	// Hex encoded TPM signature over quote
+	Signature string `json:"signature,omitempty"`
 
 	// timestamp
 	Timestamp string `json:"timestamp,omitempty"`
+
+	// Hex encoded TPM public key
+	TpmPublicKey string `json:"tpmPublicKey,omitempty"`
 }
 
-// Validate validates this report report
-func (m *ReportReport) Validate(formats strfmt.Registry) error {
+// Validate validates this rest report
+func (m *RestReport) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateComponents(formats); err != nil {
@@ -41,7 +53,7 @@ func (m *ReportReport) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ReportReport) validateComponents(formats strfmt.Registry) error {
+func (m *RestReport) validateComponents(formats strfmt.Registry) error {
 	if swag.IsZero(m.Components) { // not required
 		return nil
 	}
@@ -71,8 +83,8 @@ func (m *ReportReport) validateComponents(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this report report based on the context it is used
-func (m *ReportReport) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this rest report based on the context it is used
+func (m *RestReport) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateComponents(ctx, formats); err != nil {
@@ -85,7 +97,7 @@ func (m *ReportReport) ContextValidate(ctx context.Context, formats strfmt.Regis
 	return nil
 }
 
-func (m *ReportReport) contextValidateComponents(ctx context.Context, formats strfmt.Registry) error {
+func (m *RestReport) contextValidateComponents(ctx context.Context, formats strfmt.Registry) error {
 
 	for i := 0; i < len(m.Components); i++ {
 
@@ -115,7 +127,7 @@ func (m *ReportReport) contextValidateComponents(ctx context.Context, formats st
 }
 
 // MarshalBinary interface implementation
-func (m *ReportReport) MarshalBinary() ([]byte, error) {
+func (m *RestReport) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -123,8 +135,8 @@ func (m *ReportReport) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *ReportReport) UnmarshalBinary(b []byte) error {
-	var res ReportReport
+func (m *RestReport) UnmarshalBinary(b []byte) error {
+	var res RestReport
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
