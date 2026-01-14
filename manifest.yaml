@@ -1,0 +1,9 @@
+version: v1alpha1
+metadata:
+  name: kommodity-attestation
+  version: 1.0.0
+  author: Kommodity
+  description: Machine attestation extension for Talos Linux - collects security measurements and TPM quotes
+compatibility:
+  talos:
+    version: ">= v1.6.0"

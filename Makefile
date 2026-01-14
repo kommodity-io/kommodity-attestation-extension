@@ -1,8 +1,18 @@
+VERSION			?= $(shell git describe --tags --always)
+TREE_STATE      ?= $(shell git describe --always --dirty --exclude='*' | grep -q dirty && echo dirty || echo clean)
+COMMIT			?= $(shell git rev-parse HEAD)
+BUILD_DATE		?= $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+GO_FLAGS		:= -ldflags "-X 'k8s.io/component-base/version.gitVersion=$(VERSION)' -X 'k8s.io/component-base/version.gitTreeState=$(TREE_STATE)' -X 'k8s.io/component-base/version.buildDate=$(BUILD_DATE)' -X 'k8s.io/component-base/version.gitCommit=$(COMMIT)'"
+SOURCES			:= $(shell find . -name '*.go')
+
+IMAGE ?= ghcr.io/kommodity-io/kommodity-attestation-extension
+CONTAINER_RUNTIME ?= docker
+
+LINTER := bin/golangci-lint
+
 .PHONY: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-LINTER := bin/golangci-lint
 
 .PHONY: golangci-lint
 golangci-lint: $(LINTER) ## Download golangci-lint locally if necessary.
@@ -17,3 +27,19 @@ lint-fix: $(LINTER) ## Run the linter and fix issues.
 
 generate: ## Run code generation.
 	go generate ./...
+
+.PHONY: build
+build: $(SOURCES) ## Build the application.
+	go build $(GO_FLAGS) -o bin/kommodity-attestation-extension ./cmd/kommodity-attestation-extension
+ifneq ($(UPX_FLAGS),)
+	upx $(UPX_FLAGS) bin/kommodity-attestation-extension
+endif
+
+.PHONY: build-image
+build-image: ## Build the Talos extension image.
+	$(CONTAINER_RUNTIME) buildx build \
+	-f Containerfile \
+	-t $(IMAGE):latest \
+	. \
+	--build-arg VERSION=$(VERSION) \
+	--load
