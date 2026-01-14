@@ -1,0 +1,11 @@
+name: kommodity-attestation
+container:
+  entrypoint: ./kommodity-attestation-extension
+depends:
+  - path: /dev/tpm0
+  - network:
+      - addresses
+      - connectivity
+      - hostname
+      - etcfiles
+restart: once
