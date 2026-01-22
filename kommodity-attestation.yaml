@@ -1,9 +1,29 @@
 name: kommodity-attestation
 container:
   entrypoint: ./kommodity-attestation-extension
+  mounts:
+    - source: /dev
+      destination: /dev
+      type: bind
+      options:
+        - bind
+        - ro
+    - source: /proc
+      destination: /proc
+      type: bind
+      options:
+        - bind
+        - ro
+    - source: /sys
+      destination: /sys
+      type: bind
+      options:
+        - bind
+        - ro
 configuration: true
 depends:
   - path: /dev/tpm0
+  - time: true
   - network:
       - addresses
       - connectivity
