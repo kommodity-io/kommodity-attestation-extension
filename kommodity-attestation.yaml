@@ -1,6 +1,7 @@
 name: kommodity-attestation
 container:
   entrypoint: ./kommodity-attestation-extension
+configuration: true
 depends:
   - path: /dev/tpm0
   - network:
