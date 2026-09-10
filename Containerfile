@@ -15,6 +15,10 @@ RUN go mod download
 # Copy source code
 COPY . .
 
+# Template extension manifest with build version.
+# Talos reads metadata.version from this file, not the image tag.
+RUN sed -i "s/__VERSION__/$(echo ${VERSION} | sed 's/^v//')/" manifest.yaml
+
 # Build the binary using Makefile
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 make build UPX_FLAGS= VERSION=${VERSION}
 
@@ -30,4 +34,5 @@ COPY kommodity-attestation.yaml \
     /rootfs/usr/local/etc/containers/kommodity-attestation.yaml
 
 # Copy extension manifest (at root, not under /rootfs/)
-COPY manifest.yaml /manifest.yaml
+# Uses the templated manifest from the builder stage.
+COPY --from=builder /app/manifest.yaml /manifest.yaml
